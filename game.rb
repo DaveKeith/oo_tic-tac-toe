@@ -37,13 +37,8 @@ class Game
   end
 
   def current_player
-    total_moves % 2 == 1? cp = @o_s : cp = @x_s
+    total_moves % 2 == 0? cp = @x_s : cp = @o_s
     cp
-  end
-
-  def previous_player
-    current_player == @x_s? result = @o_s : result = @x_s
-    result
   end
 
   def board
@@ -124,15 +119,15 @@ class Game
 
     until game_over
       puts
-      sleep 0.5
+      sleep 0.4
       board
       turn = take_turn(current_player)
       if current_player == @x_s && available_moves.include?(turn)
         @x_moves.add(turn)
-        puts "#{previous_player} selects #{turn}."
+        puts "#{@x_s} selects #{turn}."
       elsif available_moves.include?(turn)
         @o_moves.add(turn)
-        puts "#{previous_player} selects #{turn}."
+        puts "#{@o_s} selects #{turn}."
       end
       available_moves.delete(turn)
     end
@@ -146,8 +141,10 @@ class Game
   end
 
   def postmortem
+    current_player == @x_s? winner = @o_s : winner = @x_s
+
     if win?
-      puts "Congratulations #{previous_player}!!!! You won!"
+      puts "Congratulations #{winner}!!!! You won!"
     elsif total_moves == 9
       puts "Tie!"
     end
