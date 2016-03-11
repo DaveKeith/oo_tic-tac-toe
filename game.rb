@@ -1,8 +1,8 @@
 require "pry"
 require "set"
 
-require "./human"
-require "./computer"
+require "./player"
+require "./record"
 
 class Game
   def initialize(x_s, o_s, player_type, spaces)
@@ -12,6 +12,8 @@ class Game
     @spaces = spaces
     @x_moves = Set.new
     @o_moves = Set.new
+    @o = Record.new
+    @x = Record.new
   end
 
   def win?
@@ -59,6 +61,14 @@ class Game
     puts
   end
 
+  def computer
+    r = rand(9)
+    while @spaces[r] == "X" || @spaces[r] == "O"
+      r = rand(9)
+    end
+    @spaces[r]
+  end
+
   def human_v_human_turn(player)
     if player == @x_s
       puts "#{@x_s}'s turn."
@@ -78,28 +88,22 @@ class Game
   end
 
   def human_v_comp_turn(player)
-    c = Computer.new(@spaces)
-    comp = c.easy_computer
-
     if !(player.include?"Computer")
       turn = human_v_human_turn(player)
     else
       puts "Computer's turn"
-      turn = comp
+      turn = computer
     end
     turn
   end
 
   def comp_v_comp_turn(player)
-    c = Computer.new(@spaces)
-    comp = c.easy_computer
-
     if player == @x_s
       puts "Computer 1's turn"
     elsif player == @o_s
       puts "Computer 2's turn"
     end
-    turn = comp
+    turn = computer
     turn
   end
 
@@ -141,12 +145,25 @@ class Game
   end
 
   def postmortem
-    current_player == @x_s? winner = @o_s : winner = @x_s
-
     if win?
+      if current_player == @x_s
+        winner = @o_s
+        @o.set_wins2
+      else
+        winner = @x_s
+        @x.set_wins1
+      end
       puts "Congratulations #{winner}!!!! You won!"
     elsif total_moves == 9
       puts "Tie!"
     end
+  end
+
+  def get_x_wins
+    @x.get_wins1
+  end
+
+  def get_o_wins
+    @o.get_wins2
   end
 end
