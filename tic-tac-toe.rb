@@ -2,10 +2,8 @@ require "pry"
 require "set"
 
 require "./game"
-require "./player"
-require "./record"
+require "./board"
 
-spaces_array = [1, 2, 3, 4, 5, 6, 7, 8, 9]
 choice = 999
 until choice.between?(0, 2)
   puts "How many humans are in this game (0, 1, or 2)?"
@@ -15,16 +13,8 @@ end
 x_win_count = 0
 o_win_count = 0
 ties = 0
-x_record = Record.new
-o_record = Record.new
-x = Player.new
-o = Player.new
 x_s = nil
 o_s = nil
-comp1 = nil
-comp2 = nil
-x_moves = Set.new
-o_moves = Set.new
 
 if choice == 0
   puts "'X' is 'Computer 1', 'O' is Computer 2."
@@ -54,15 +44,14 @@ elsif choice == 2
   o_s = name2
 end
 
-x_moves = x.moves
-o_moves = o.moves
+b = Board.new(x_s, o_s)
 play_game = 'y'
 until play_game != 'y'
-  t = Game.new(x_s, o_s, choice, spaces_array)
-  t.ticTacToe
-  if t.get_x_wins == 1
+  t = Game.new(x_s, o_s, choice)
+  t.tic_tac_toe
+  if t.get_record == 1
     x_win_count += 1
-  elsif t.get_o_wins == 1
+  elsif t.get_record == 2
     o_win_count += 1
   else
     ties += 1

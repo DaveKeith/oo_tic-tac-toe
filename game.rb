@@ -1,169 +1,55 @@
 require "pry"
 require "set"
 
-require "./player"
-require "./record"
+require "./turns"
+require "./board"
 
 class Game
-  def initialize(x_s, o_s, player_type, spaces)
+  def initialize(x_s, o_s, player_type)
+    @b = Board.new(x_s, o_s)
     @x_s = x_s
     @o_s = o_s
     @player_type = player_type
-    @spaces = spaces
-    @x_moves = Set.new
-    @o_moves = Set.new
-    @o = Record.new
-    @x = Record.new
+    @spaces = @b.get_spaces
+    @record = 0
   end
 
-  def win?
-    threeInRow = [Set.new([1, 2, 3]), Set.new([4, 5, 6]),
-    Set.new([7, 8, 9]), Set.new([1, 4, 7]), Set.new([2, 5, 8]),
-    Set.new([3, 6, 9]), Set.new([1, 5, 9]), Set.new([3, 5, 7])]
-
-    result = false
-
-    8.times do |threes|
-      if @x_moves >= threeInRow[threes] ||
-        @o_moves >= threeInRow[threes]
-        result = true
-      end
-    end
-    result
+  def set_x_moves(turn)
+    @b.x_moves.add(turn)
   end
 
-  def total_moves
-    total = @x_moves + @o_moves
-    t = total.length
-    t
+  def set_o_moves(turn)
+    @b.o_moves.add(turn)
   end
 
-  def current_player
-    total_moves % 2 == 0? cp = @x_s : cp = @o_s
-    cp
-  end
-
-  def board
-    9.times do |space|
-      if @x_moves.include?(@spaces[space])
-        @spaces[space] = "X"
-      elsif @o_moves.include?(@spaces[space])
-        @spaces[space] = "O"
-      end
-
-      if space % 3 == 0
-        print "\n"
-      else
-        print " | "
-      end
-      print @spaces[space]
-    end
-    puts
-  end
-
-  def computer
-    r = rand(9)
-    while @spaces[r] == "X" || @spaces[r] == "O"
-      r = rand(9)
-    end
-    @spaces[r]
-  end
-
-  def human_v_human_turn(player)
-    if player == @x_s
-      puts "#{@x_s}'s turn."
-      puts "Where do you want to draw an 'X' (type a number 1-9)?:"
-      turn = gets.chomp.to_i
-    elsif player == @o_s
-      puts "#{@o_s}'s turn."
-      puts "Where do you want to draw an 'O' (type a number 1-9)?:"
-      turn = gets.chomp.to_i
-    end
-
-    until (1..9).include?(turn)
-      puts "Choose a different number: "
-      turn = gets.chomp.to_i
-    end
-    turn
-  end
-
-  def human_v_comp_turn(player)
-    if !(player.include?"Computer")
-      turn = human_v_human_turn(player)
-    else
-      puts "Computer's turn"
-      turn = computer
-    end
-    turn
-  end
-
-  def comp_v_comp_turn(player)
-    if player == @x_s
-      puts "Computer 1's turn"
-    elsif player == @o_s
-      puts "Computer 2's turn"
-    end
-    turn = computer
-    turn
-  end
-
-  def take_turn(player)
-    if @player_type == 2
-      turn = human_v_human_turn(player)
-    elsif @player_type == 1
-      turn = human_v_comp_turn(player)
-    else
-      turn = comp_v_comp_turn(player)
-    end
-    turn
-  end
-
-  def ticTacToe
+  def tic_tac_toe
     available_moves = Set.new(@spaces)
-
-    until game_over
+    t = Turns.new(@x_s, @o_s, @player_type)
+    until @b.game_over
       puts
       sleep 0.4
-      board
-      turn = take_turn(current_player)
-      if current_player == @x_s && available_moves.include?(turn)
-        @x_moves.add(turn)
+      @b.board
+      available_moves.length % 2 == 1? player = @x_s : player = @o_s
+      turn = t.take_turn(player)
+      if player == @x_s && available_moves.include?(turn)
+        set_x_moves(turn)
         puts "#{@x_s} selects #{turn}."
       elsif available_moves.include?(turn)
-        @o_moves.add(turn)
+        set_o_moves(turn)
         puts "#{@o_s} selects #{turn}."
       end
       available_moves.delete(turn)
     end
-    board
-    postmortem
+    @b.board
+    @b.postmortem
+    set_record(@b.result_num)
   end
 
-  def game_over
-    @spaces = [1, 2, 3, 4, 5, 6, 7, 8, 9]
-    win? || total_moves == 9
+  def set_record(num)
+    @record = num
   end
 
-  def postmortem
-    if win?
-      if current_player == @x_s
-        winner = @o_s
-        @o.set_wins2
-      else
-        winner = @x_s
-        @x.set_wins1
-      end
-      puts "Congratulations #{winner}!!!! You won!"
-    elsif total_moves == 9
-      puts "Tie!"
-    end
-  end
-
-  def get_x_wins
-    @x.get_wins1
-  end
-
-  def get_o_wins
-    @o.get_wins2
+  def get_record
+    @record
   end
 end
